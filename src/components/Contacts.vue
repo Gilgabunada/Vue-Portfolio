@@ -96,6 +96,8 @@
             const result = response.data;
             if (result.success) {
                 notyf.success("Your message has been sent successfully!");
+                
+                // Clear input areas explicitly after confirmed success
                 name.value = "";
                 email.value = "";
                 message.value = "";
