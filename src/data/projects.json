@@ -1,0 +1,62 @@
+[
+    {  
+        "id": 1,
+        "title": "E-commerce API Documentation",
+        "description": "Dynamic E-Commerce Workflow Management. The system features dynamic routes for order processing, real-time inventory updates, and secure user authentication. It also supports seamless automated order reporting and comprehensive product management.\n Documented Backend API published publicly using Postman.",
+        "image": "/images/1st.jpg",
+        "link": "https://documenter.getpostman.com/view/58149914/2sBYHXPxns"
+    },
+    {
+        "id": 2,
+        "title": "Course Booking API Documentation",
+        "description": "RESTful API for managing course enrollments, featuring user registration, authentication, and retrieval of user details. Supports course creation, updates, archiving, activation, and student enrollment. Publicly documented using Postman.",
+        "image": "/images/2nd.jpg"
+    },
+    {
+        "id": 3,
+        "title": "Course booking App",
+        "description": "A MERN-stack course enrollment system featuring user registration, authentication, and profile management. Authenticated users can create, update, archive, and activate courses. The platform also allows users to browse available courses and enroll seamlessly.",
+        "image": "/images/3rd.jpg"
+    },
+    {
+        "id": 4,
+        "title": "E-commerce App",
+        "description": "MERN E-Commerce Platform. The platform features dynamic product catalog with filtering and sorting, real-time search, seamless cart updates, secure checkout, and a comprehensive admin dashboard with real-time analytics and user management capabilities.",
+        "image": "/images/4th.jpg",
+        "link": "http://zuitt-bootcamp-prod-645-10063-gabunadajr.s3-website.us-east-1.amazonaws.com/"
+    },
+    {
+        "id": 5,
+        "title": "Airline Booking System Mockup",
+        "description": "Side Project: Conceptual design showcasing an intuitive UI for flight search, seat selection, and booking confirmation, focusing on user experience and workflow efficiency.",
+        "image": "/images/5th.jpg"
+    },
+    {
+        "id": 6,
+        "title": "Airline Booking System Prototype",
+        "description": "Side Project: Interactive prototype simulating end-to-end airline booking functionalities, including flight search, reservation, payment processing, and real-time ticket management.",
+        "image": "/images/6th.jpg"
+    },
+    {
+        "id": 7,
+        "title": "Capstone 1",
+        "description": "Personal Portfolio. A responsive single-page portfolio built with Vue 3, Vite, and Bootstrap 5, featuring smooth scroll-snap navigation across sections, a dark-themed UI, a searchable project showcase, and a working contact form. Deployed publicly on GitHub Pages.",
+        "image": "/images/7th.jpg",
+        "link": "https://gilgabunada.github.io/webporfolio/"
+    },
+    {
+        "id": 8,
+        "title": "Capstone 2",
+        "description": "Tech Store Backend. A RESTful API built with MongoDB, with 23 documented endpoints across four modules: user authentication (register, login, password update, admin role assignment), a product catalog with creation, active-only retrieval, name/price search, and admin archive/activate controls, shopping cart management (add, update quantities, remove items, clear), and order checkout with user purchase history and admin-wide order reports. Full API documentation published publicly using Postman.",
+        "image": "/images/8th.jpg",
+        "link": "https://documenter.getpostman.com/view/58149914/2sBYHXPxns"
+    },
+    {
+        "id": 9,
+        "title": "Capstone 3",
+        "description": "MERN E-Commerce Web Application. The complete online store built on top of the Capstone 2 API, featuring a dynamic product catalog with real-time search, secure user registration and login, a persisted shopping cart with quantity updates and item removal, checkout with order history, and an admin dashboard for product management and order monitoring. Live frontend deployed to AWS S3.",
+        "image": "/images/9th.jpg",
+        "link": "http://zuitt-bootcamp-prod-645-10063-gabunadajr.s3-website.us-east-1.amazonaws.com/"
+    }
+
+]
