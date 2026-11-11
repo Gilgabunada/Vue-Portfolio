@@ -1,3 +1,61 @@
+<script setup>
+    import { ref, onMounted, onBeforeUnmount} from 'vue';
+    import axios from 'axios';
+    import { Notyf } from 'notyf';
+    import 'notyf/notyf.min.css';
+
+    const notyf = new Notyf();
+
+    const WEB3FORMS_ACCESS_KEY = '47f7afaf-d676-4e42-b432-3f6196299ace';
+
+    // Initial value for the email:
+
+    const subject = "New message from Portfolio Contact Form";
+    const name = ref("");
+    const email = ref("");
+    const message = ref("");
+
+    const isLoading = ref(false);
+
+     const submitForm = async () => {
+
+        isLoading.value = true;
+
+        try{
+            const response = await axios.post("https://api.web3forms.com/submit",{
+                access_key: WEB3FORMS_ACCESS_KEY,
+                subject: subject,
+                name: name.value,
+                email: email.value,
+                message: message.value
+            },{
+                headers:{
+                    'Content-Type': "application/json",
+                    Accept:"application/json"
+                }
+            });
+
+            const result = response.data;
+            if(result.success){
+                notyf.success("Your message has been sent successfully!");
+                name.value = "";
+                email.value = "";
+                message.value = "";
+            } else {
+                console.error("Web3Forms Error Response:", response.data);
+                notyf.error(response.data.message || "Failed to send message. Please try again.");
+            }
+
+        }catch(error){
+            notyf.error(error.response?.data?.message || "An error occurred while sending your message.");
+        }finally{
+            isLoading.value = false;
+        }
+    }
+
+</script>
+    
+
 <template>
 <!-- CONTACT SECTION STARTS HERE -->
     <section id="contact" class="section page-4 d-flex flex-column justify-content-between py-4 px-3 px-lg-5">
@@ -68,28 +126,28 @@
 
                 <!-- Right Column: Contact Form Box starts -->
                     <div class="col-12 col-lg-7">
-                        <form class="contact-form-box p-3 p-md-4 d-flex flex-column justify-content-between h-100">
+                        <form @submit.prevent="submitForm" class="contact-form-box p-3 p-md-4 d-flex flex-column justify-content-between h-100">
                         <div>
                             <div class="mb-2">
                                 <label class="card-label text-uppercase fw-bold mb-1 small">YOUR NAME</label>
-                                <input type="text" class="form-control form-control-sm custom-input" placeholder="e.g. Gil Gabunada" required>
+                                <input v-model="name" type="text" class="form-control form-control-sm custom-input" placeholder="e.g. Gil Gabunada" required>
                                 </div>
 
                                 <div class="mb-2">
-                                <label class="card-label text-uppercase fw-bold mb-1 small">EMAIL OR PHONE NUMBER</label>
-                                <input type="text" class="form-control form-control-sm custom-input" placeholder="e.g. alex@company.com or +1 415-000-0000" required>
+                                <label class="card-label text-uppercase fw-bold mb-1 small">EMAIL</label>
+                                <input  v-model="email" type="text" class="form-control form-control-sm custom-input" placeholder="e.g. alex@company.com" required>
                                 </div>
 
                                 <div class="mb-2">
                                 <label class="card-label text-uppercase fw-bold mb-1 small">PROJECT BRIEF / MESSAGE</label>
-                                <textarea class="form-control form-control-sm custom-input" rows="3" placeholder="Tell me about your product scope, timeline, and goals..."></textarea>
+                                <textarea  v-model="message" class="form-control form-control-sm custom-input" rows="3" placeholder="Tell me about your product scope, timeline, and goals..."></textarea>
                             </div>
                         </div>
 
                             <div class="d-flex justify-content-end mt-2">
-                                <button type="submit" class="btn send-btn btn-sm px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2">
-                                Send Message
-                                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/arrow-right.svg" alt="Arrow" width="14" height="14" class="invert-icon">
+                                <button type="submit" class="btn send-btn btn-sm px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2" :disabled="isLoading">
+                                {{ isLoading ? 'Sending...' : 'Send Message ' }}
+                                   
                                 </button>
                             </div>
                         </form>
