@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, nextTick } from 'vue';
+    import { ref, onMounted, onBeforeUnmount} from 'vue';
     import axios from 'axios';
     import { Notyf } from 'notyf';
     import 'notyf/notyf.min.css';
@@ -9,44 +9,76 @@
     const WEB3FORMS_ACCESS_KEY = '47f7afaf-d676-4e42-b432-3f6196299ace';
     const SITE_KEY = '6LcrrRouAAAAAGpm_x1-R2361MEsU_yY8cL2lEor';
 
+    // Initial value for the email:
+
     const subject = "New message from Portfolio Contact Form";
     const name = ref("");
     const email = ref("");
     const message = ref("");
 
     const isLoading = ref(false);
-    const showRecaptchaModal = ref(false);
+
+     const submitForm = async () => {
+
+        if (!recaptchaToken.value) {
+            notyf.error('Please verify that you are not a robot.');
+            return;
+        }
+
+        isLoading.value = true;
+
+        try{
+            const response = await axios.post("https://api.web3forms.com/submit",{
+                access_key: WEB3FORMS_ACCESS_KEY,
+                subject: subject,
+                name: name.value,
+                email: email.value,
+                message: message.value
+            },{
+                headers:{
+                    'Content-Type': "application/json",
+                    Accept:"application/json"
+                }
+            });
+
+            const result = response.data;
+            if(result.success){
+                notyf.success("Your message has been sent successfully!");
+                name.value = "";
+                email.value = "";
+                message.value = "";
+                resetRecaptcha();
+            } else {
+                console.error("Web3Forms Error Response:", response.data);
+                notyf.error(response.data.message || "Failed to send message. Please try again.");
+            }
+
+        }catch(error){
+            notyf.error(error.response?.data?.message || "An error occurred while sending your message.");
+        }finally{
+            isLoading.value = false;
+        }
+    }
 
     const recaptchaContainer = ref(null);
     const recaptchaWidgetId = ref(null);
     const recaptchaToken = ref('');
 
-    // Step 1: User submits the form -> Open reCAPTCHA modal
-    const handleInitialSubmit = () => {
-        if (!name.value || !email.value || !message.value) {
-            notyf.error('Please fill in all required fields.');
-            return;
-        }
+    // Callback called by reCAPTCHA when successful
+    function onRecaptchaSuccess(token) {
+        recaptchaToken.value = token;
+    }
 
-        showRecaptchaModal.value = true;
+    // Callback when expired
+    function onRecaptchaExpired() {
+        recaptchaToken.value = '';
+    }
 
-        nextTick(() => {
-            renderRecaptcha();
-        });
-    };
-
-    // Render the reCAPTCHA widget inside the modal container
+    // Function to render the reCAPTCHA widget
     function renderRecaptcha() {
-        if (!window.grecaptcha || !recaptchaContainer.value) {
+        if (!window.grecaptcha) {
+            console.error('reCAPTCHA not loaded');
             return;
-        }
-
-        if (recaptchaWidgetId.value !== null) {
-            try {
-                window.grecaptcha.reset(recaptchaWidgetId.value);
-            } catch (e) {
-                // Ignore if not rendered yet
-            }
         }
 
         recaptchaWidgetId.value = window.grecaptcha.render(recaptchaContainer.value, {
@@ -57,65 +89,33 @@
         });
     }
 
-    // Callback when reCAPTCHA is successfully completed
-    async function onRecaptchaSuccess(token) {
-        recaptchaToken.value = token;
-        showRecaptchaModal.value = false;
-        await submitForm();
-    }
-
-    // Callback when expired
-    function onRecaptchaExpired() {
-        recaptchaToken.value = '';
-    }
-
-    // Step 2: Perform the actual Web3Forms submit with the token
-    const submitForm = async () => {
-        if (!recaptchaToken.value) {
-            notyf.error('Please verify that you are not a robot.');
-            return;
+    // Function to reset reCAPTCHA 
+    function resetRecaptcha() {
+        if (recaptchaWidgetId.value !== null) {
+            window.grecaptcha.reset(recaptchaWidgetId.value);
+            recaptchaToken.value = '';
         }
+    }
 
-        isLoading.value = true;
-
-        try {
-            const response = await axios.post("https://api.web3forms.com/submit", {
-                access_key: WEB3FORMS_ACCESS_KEY,
-                subject: subject,
-                name: name.value,
-                email: email.value,
-                message: message.value,
-                "g-recaptcha-response": recaptchaToken.value
-            }, {
-                headers: {
-                    'Content-Type': "application/json",
-                    Accept: "application/json"
-                }
-            });
-
-            const result = response.data;
-            if (result.success) {
-                notyf.success("Your message has been sent successfully!");
-                name.value = "";
-                email.value = "";
-                message.value = "";
-                recaptchaToken.value = "";
-            } else {
-                console.error("Web3Forms Error Response:", response.data);
-                notyf.error(response.data.message || "Failed to send message. Please try again.");
+    onMounted(() => {
+        const interval = setInterval(() => {
+            if (window.grecaptcha && window.grecaptcha.render) {
+                renderRecaptcha();
+                clearInterval(interval);
             }
+        }, 100);
 
-        } catch (error) {
-            notyf.error(error.response?.data?.message || "An error occurred while sending your message.");
-        } finally {
-            isLoading.value = false;
-        }
-    };
+        onBeforeUnmount(() => {
+            clearInterval(interval);
+        });
+    });
+
 </script>
+    
 
 <template>
 <!-- CONTACT SECTION STARTS HERE -->
-    <section id="contact" class="section page-4 d-flex flex-column justify-content-between py-4 px-3 px-lg-5 position-relative">
+    <section id="contact" class="section page-4 d-flex flex-column justify-content-between py-4 px-3 px-lg-5">
         <div class="container my-auto">
             <div class="row g-3 align-items-stretch justify-content-center">
             
@@ -160,12 +160,12 @@
                         <span class="card-label text-uppercase d-block fw-bold mb-2 small">CONNECT CHANNELS</span>
                         <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
 
-                            <!-- Facebook -->
+                            <!-- Facebook (Bootstrap SVG Icon + Base Domain) -->
                             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="social-icon-btn d-flex align-items-center justify-content-center" title="Facebook">
                                 <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/facebook.svg" alt="Facebook" width="18" height="18" class="invert-icon">
                             </a>
 
-                            <!-- LinkedIn -->
+                            <!-- LinkedIn (Base Domain) -->
                             <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-icon-btn d-flex align-items-center justify-content-center" title="LinkedIn">
                                 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linkedin/linkedin-original.svg" alt="LinkedIn" width="18" height="18">
                             </a>
@@ -183,50 +183,38 @@
 
                 <!-- Right Column: Contact Form Box starts -->
                 <div class="col-12 col-lg-7">
-                    <form @submit.prevent="handleInitialSubmit" class="contact-form-box p-3 p-md-4 d-flex flex-column justify-content-between h-100">
+                    <form @submit.prevent="submitForm" class="contact-form-box p-3 p-md-4 d-flex flex-column justify-content-between h-100">
                         <div>
                             <div class="mb-2">
                                 <label class="card-label text-uppercase fw-bold mb-1 small">YOUR NAME</label>
                                 <input v-model="name" type="text" class="form-control form-control-sm custom-input" placeholder="e.g. Gil Gabunada" required>
-                            </div>
+                                </div>
 
-                            <div class="mb-2">
+                                <div class="mb-2">
                                 <label class="card-label text-uppercase fw-bold mb-1 small">EMAIL</label>
-                                <input v-model="email" type="email" class="form-control form-control-sm custom-input" placeholder="e.g. alex@company.com" required>
-                            </div>
+                                <input  v-model="email" type="text" class="form-control form-control-sm custom-input" placeholder="e.g. alex@company.com" required>
+                                </div>
 
-                            <div class="mb-2">
+                                <div class="mb-2">
                                 <label class="card-label text-uppercase fw-bold mb-1 small">PROJECT BRIEF / MESSAGE</label>
-                                <textarea v-model="message" class="form-control form-control-sm custom-input" rows="3" placeholder="Tell me about your product scope, timeline, and goals..."></textarea>
+                                <textarea  v-model="message" class="form-control form-control-sm custom-input" rows="3" placeholder="Tell me about your product scope, timeline, and goals..."></textarea>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-end mt-2">
                             <button type="submit" class="btn send-btn btn-sm px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2" :disabled="isLoading">
-                                {{ isLoading ? 'Sending...' : 'Send Message' }}
+                            {{ isLoading ? 'Sending...' : 'Send Message ' }}
+                                
                             </button>
+                        </div>
+                        <!-- recaptcha checkbox -->
+                        <div class="d-flex justify-content-end mt-2">
+                            <div ref="recaptchaContainer"></div>
                         </div>
                     </form>
                 </div>
-                <!-- Right Column: Contact Form Box ends -->
-
             </div>
         </div>
-
-        <!-- reCAPTCHA Popup Modal Overlay -->
-        <div v-if="showRecaptchaModal" class="custom-recaptcha-overlay position-fixed top-0 start-0 w-100 h-100 d-flex                      justify-content-center align-items-center bg-dark bg-opacity-75" style="z-index: 1050;">
-            <div class="bg-white p-4 rounded shadow-lg text-center position-relative" style="max-width: 400px; width: 100%;">
-                <h5 class="mb-3 text-dark fw-bold">Security Verification</h5>
-                <p class="text-muted small mb-3">Please verify that you are not a robot to send your message.</p>
-                
-                <div class="d-flex justify-content-center mb-3">
-                    <div ref="recaptchaContainer"></div>
-                </div>
-
-                <button type="button" class="btn btn-secondary btn-sm w-100" @click="showRecaptchaModal = false">
-                    Cancel
-                </button>
-            </div>
-        </div>
+        <!-- Right Column: Contact Form Box ends -->
     </section>
 </template>
